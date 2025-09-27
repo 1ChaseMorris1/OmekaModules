@@ -1,0 +1,61 @@
+<?php
+// Admin item tab content for QR Codes.
+// The surrounding admin theme expects a div with id matching the section key
+// added to section_nav: "qrcodes-section" and class "section".
+/** @var \Laminas\View\Renderer\PhpRenderer $this */
+/** @var \Omeka\Api\Representation\ItemRepresentation|null $resource */
+?>
+<div id="qrcodes-section" class="section">
+    <?php if (!isset($resource) && isset($item)) { $resource = $item; } ?>
+    <h3><?= $this->translate('QR Codes') ?></h3>
+    <?php if (isset($resource) && $resource): ?>
+        <?php
+        // Build canonical admin item metadata URL, regardless of host.
+        $itemUrl = $this->url('admin/id', ['controller' => 'item', 'id' => $resource->id()], true) . '#item-metadata';
+        ?>
+        <p>
+            <?= $this->translate('Scans will open the admin metadata tab for this item.') ?>
+        </p>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <div id="qrcodes-canvas" aria-label="<?= $this->escapeHtmlAttr($this->translate('QR code')) ?>"></div>
+            <div>
+                <div style="word-break:break-all; max-width:480px;">
+                    <strong><?= $this->translate('Target URL:') ?></strong><br/>
+                    <a href="<?= $this->escapeHtmlAttr($itemUrl) ?>" target="_blank" rel="noopener">
+                        <?= $this->escapeHtml($itemUrl) ?>
+                    </a>
+                </div>
+                <p style="margin-top:10px;">
+                    <a id="qrcodes-download" class="button" href="#" download="item-<?= (int) $resource->id() ?>-qr.png">
+                        <?= $this->translate('Download PNG') ?>
+                    </a>
+                </p>
+            </div>
+        </div>
+        <?php
+        // Load local QR library and render.
+        // Load the local QR generator provided in the module (no external calls).
+        $this->headScript()->appendFile($this->basePath('/modules/QRCodes/CodeGenerator/qrcode.min.js'), 'text/javascript', ['defer' => 'defer']);
+        $script = "(function(){\n".
+            "function ready(fn){if(document.readyState!='loading'){fn()}else document.addEventListener('DOMContentLoaded',fn)}\n".
+            "ready(function(){\n".
+            " var el = document.getElementById('qrcodes-canvas');\n".
+            " if(!el||typeof QRCode==='undefined'){return;}\n".
+            " var q = new QRCode(el,{text: " . json_encode($itemUrl) . ", width:300, height:300, correctLevel: QRCode.CorrectLevel.M});\n".
+            " // Try to update download link once canvas/img is rendered.\n".
+            " setTimeout(function(){\n".
+            "   var link = document.getElementById('qrcodes-download');\n".
+            "   if(!link) return;\n".
+            "   var img = el.querySelector('img');\n".
+            "   var canvas = el.querySelector('canvas');\n".
+            "   var dataUrl = img ? img.src : (canvas ? canvas.toDataURL('image/png') : null);\n".
+            "   if(dataUrl){ link.href = dataUrl; }\n".
+            " }, 200);\n".
+            "});\n".
+            "})();";
+        $this->headScript()->appendScript($script, 'text/javascript', ['defer' => 'defer']);
+        ?>
+    <?php else: ?>
+        <p><?= $this->translate('Save the item to generate a QR code.') ?></p>
+    <?php endif; ?>
+</div>

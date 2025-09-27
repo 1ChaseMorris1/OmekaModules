@@ -1,0 +1,35 @@
+<?php
+/** @var \Laminas\View\Renderer\PhpRenderer $this */
+/** @var array $exports */
+?>
+<div class="section">
+    <h1>QR Codes</h1>
+
+    <form method="post" action="<?= $this->url('admin/qr-codes/default', ['action' => 'create']) ?>">
+        <button type="submit" class="button">Create New Export</button>
+    </form>
+
+    <h2 style="margin-top: 1.5em;">Exports</h2>
+    <?php if (empty($exports)): ?>
+        <p>No exports yet.</p>
+    <?php else: ?>
+        <table class="tablesaw tablesaw-stack" data-tablesaw-mode="stack">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Label</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($exports as $export): ?>
+                    <tr>
+                        <td><?= (int) ($export['id'] ?? 0) ?></td>
+                        <td><?= $this->escapeHtml($export['label'] ?? '') ?></td>
+                        <td><?= isset($export['created']) ? $this->escapeHtml(date('Y-m-d H:i:s', (int) $export['created'])) : '' ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</div>
