@@ -1,0 +1,39 @@
+Omeka S module route:
+
+Add a route that matches the old Classic pattern and redirects after a lookup. You can store the mapping in:
+
+Module settings (JSON map)
+
+A dedicated DB table (e.g., classic_to_s_map(old_id,new_id))
+
+Example route (module config):
+
+Add a Segment route for /omeka/admin/items/show/:oldId with :oldId numeric.
+
+Defaults: controller QRCodes\Controller\Admin\ClassicRedirectController, action redirect.
+
+Example controller (simplified):
+
+Read oldId from route.
+
+Lookup $newId from a settings JSON map ($settings->get('qrcodes_classic_map')) or a table.
+
+If found, return $this->redirect()->toUrl($this->url('admin/id', ['controller' => 'item', 'id' => $newId], true) . '#item-metadata');
+
+Else, 404 or redirect to a fallback page.
+
+
+
+
+module.ini: 
+
+[info]
+version = "0.1.7"
+omeka_version_constraint = "^4.0.0"
+name = "QR Codes"
+description = "A simple module to generate QR codes for items, item sets, and media."
+author = "Chase Morris"
+author_link = "https://chasemorris.github.io/"
+configurable = false
+module_link = ""
+support_link = ""
